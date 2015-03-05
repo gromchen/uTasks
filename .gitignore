@@ -1,2 +1,7 @@
 uTasks/Temp/
 uTasks/Library/
+uTasks/obj/
+*.suo
+uTasks/*.sln
+uTasks/*.DotSettings
+uTasks/*.csproj
