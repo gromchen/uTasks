@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using UnityEngine;
 
-namespace uTasks.Tests
+namespace uTasks.Demo
 {
     public class ConstantRotation : MonoBehaviour
     {

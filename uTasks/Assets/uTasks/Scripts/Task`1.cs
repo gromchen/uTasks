@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace uTasks
 {
@@ -17,6 +18,13 @@ namespace uTasks
         }
 
         public TResult Result { get; private set; }
+
+        internal bool TrySetCanceled(CancellationToken tokenToRecord, Exception cancellationException = null)
+        {
+            Finish(TaskStatus.Canceled);
+            RecordInternalCancellationRequest(tokenToRecord, cancellationException);
+            return true;
+        }
 
         public Task ContinueWithTask(Action<Task<TResult>> action)
         {
@@ -66,6 +74,17 @@ namespace uTasks
         public bool TrySetException(Exception exception)
         {
             AddException(exception);
+            Finish();
+            return true;
+        }
+
+        public bool TrySetException(IEnumerable<Exception> exceptions)
+        {
+            foreach (var exception in exceptions)
+            {
+                AddException(exception);
+            }
+
             Finish();
             return true;
         }
@@ -153,14 +172,23 @@ namespace uTasks
         protected override IEnumerator WaitForMainTaskCompletion()
         {
             var asyncResult = _function.BeginInvoke(null, null);
+            Status = TaskStatus.Running;
 
             while (asyncResult.IsCompleted == false)
             {
                 yield return null;
             }
 
-            Result = _function.EndInvoke(asyncResult);
-            IsCompleted = true;
+            try
+            {
+                Result = _function.EndInvoke(asyncResult);
+                Status = TaskStatus.RanToCompletion;
+            }
+            catch (Exception exception)
+            {
+                AddException(exception);
+                Status = TaskStatus.Faulted;
+            }
         }
 
         #endregion

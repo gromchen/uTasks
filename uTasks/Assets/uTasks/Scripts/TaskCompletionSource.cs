@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace uTasks
 {
@@ -15,6 +16,23 @@ namespace uTasks
         public bool TrySetResult(TResult result)
         {
             var flag = Task.TrySetResult(result);
+
+            if (flag == false && Task.IsCompleted == false)
+            {
+                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+            }
+
+            return flag;
+        }
+
+        public bool TrySetCanceled()
+        {
+            return TrySetCanceled(new CancellationToken());
+        }
+
+        internal bool TrySetCanceled(CancellationToken tokenToRecord)
+        {
+            bool flag = Task.TrySetCanceled(tokenToRecord);
 
             if (flag == false && Task.IsCompleted == false)
             {
@@ -52,9 +70,43 @@ namespace uTasks
             }
         }
 
+        public void SetException(IEnumerable<Exception> exceptions)
+        {
+            if (!TrySetException(exceptions))
+                throw new InvalidOperationException("Task is already completed.");
+        }
+
         public bool TrySetException(Exception exception)
         {
             var flag = Task.TrySetException(exception);
+
+            if (flag == false && Task.IsCompleted == false)
+            {
+                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+            }
+
+            return flag;
+        }
+
+        public bool TrySetException(IEnumerable<Exception> exceptions)
+        {
+            if (exceptions == null)
+                throw new ArgumentNullException("exceptions");
+            
+            List<Exception> list = new List<Exception>();
+            
+            foreach (Exception exception in exceptions)
+            {
+                if (exception == null)
+                    throw new ArgumentException("Exception is null.", "exceptions");
+
+                list.Add(exception);
+            }
+
+            if (list.Count == 0)
+                throw new ArgumentException("There is no exceptions.", "exceptions");
+            
+            bool flag = Task.TrySetException(list);
 
             if (flag == false && Task.IsCompleted == false)
             {

@@ -6,31 +6,43 @@ namespace uTasks
     public class Task
     {
         private readonly Action _action;
+        private CancellationToken _cancellationToken;
         private IEnumerator _taskEnumerator;
 
         public Task()
         {
+            Status = TaskStatus.Created;
         }
 
-        public Task(Action action)
+        public Task(Action action) : this()
         {
             _action = action;
         }
 
         public AggregateException Exception { get; private set; }
-        public bool IsCompleted { get; protected set; }
 
-        protected virtual IEnumerator WaitForMainTaskCompletion()
+        public bool IsCompleted
         {
-            var asyncResult = _action.BeginInvoke(null, null);
+            get { return Status == TaskStatus.RanToCompletion; }
+        }
 
-            while (asyncResult.IsCompleted == false)
-            {
-                yield return null;
-            }
+        public TaskStatus Status { get; protected set; }
 
-            _action.EndInvoke(asyncResult);
-            IsCompleted = true;
+        public bool IsFaulted
+        {
+            get { return Status == TaskStatus.Faulted; }
+        }
+
+        public bool IsCanceled
+        {
+            get { return Status == TaskStatus.Canceled || Status == TaskStatus.Faulted; }
+        }
+
+        protected void RecordInternalCancellationRequest(CancellationToken tokenToRecord,
+            Exception cancellationException)
+        {
+            _cancellationToken = tokenToRecord;
+            AddException(cancellationException);
         }
 
         public void Start()
@@ -54,43 +66,51 @@ namespace uTasks
             Exception.AddInnerException(exception);
         }
 
-        internal void Finish()
+        internal void Finish(TaskStatus status = TaskStatus.RanToCompletion)
         {
             if (_taskEnumerator != null)
             {
                 TaskScheduler.Current.StopCoroutineInMainThread(_taskEnumerator);
             }
 
-            IsCompleted = true;
+            Status = status;
         }
 
         public Task ContinueWithTask(Action<Task> action)
         {
-            var task = new Task(() => action(this));
-
-            if (IsCompleted)
-            {
-                task.Start();
-            }
-            else
-            {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
-            }
-
-            return task;
+            return ThenWith(new Task(() => action(this)));
         }
 
         public Task ThenWithTask(Action action)
         {
-            var task = new Task(action);
+            return ThenWith(new Task(action));
+        }
 
-            if (IsCompleted)
+        public Task ThenWithTask(Func<Task> function)
+        {
+            return ThenWith(new Task<Task>(function));
+        }
+
+        public Task ThenWithTask<T1, T2>(Func<T1, T2, Task> successor, T1 arg1, T2 arg2)
+        {
+            return ThenWith(new Task<Task>(() => successor(arg1, arg2)));
+        }
+
+        private Task ThenWith(Task task)
+        {
+            switch (Status)
             {
-                task.Start();
-            }
-            else
-            {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
+                case TaskStatus.Faulted:
+                case TaskStatus.Canceled:
+                    return this;
+
+                case TaskStatus.RanToCompletion:
+                    task.Start();
+                    break;
+
+                default:
+                    TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
+                    break;
             }
 
             return task;
@@ -133,6 +153,28 @@ namespace uTasks
 
         #region Enumerations
 
+        protected virtual IEnumerator WaitForMainTaskCompletion()
+        {
+            var asyncResult = _action.BeginInvoke(null, null);
+            Status = TaskStatus.Running;
+
+            while (asyncResult.IsCompleted == false)
+            {
+                yield return null;
+            }
+
+            try
+            {
+                _action.EndInvoke(asyncResult);
+                Status = TaskStatus.RanToCompletion;
+            }
+            catch (Exception exception)
+            {
+                AddException(exception);
+                Status = TaskStatus.Faulted;
+            }
+        }
+
         private IEnumerator WaitForCompletionAndExecute(Action<Task> action)
         {
             while (IsCompleted == false)
@@ -154,6 +196,5 @@ namespace uTasks
         }
 
         #endregion
-
     }
 }

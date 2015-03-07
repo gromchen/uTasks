@@ -2,26 +2,29 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace uTasks.Tests
+namespace uTasks.Demo
 {
-    public class Test : MonoBehaviour
+    public class Demo : MonoBehaviour
     {
-        [SerializeField] private InputField _nField;
         [SerializeField] private Text _resultText;
-        [SerializeField] private Button _startButton;
+        [SerializeField] private InputField _nInputField;
+        [SerializeField] private Button _calculateButton;
+        [SerializeField] private Button _cancelButton;
 
         [UsedImplicitly]
         private void Awake()
         {
             TaskScheduler.Current = new UnityTaskScheduler();
-            _startButton.onClick.AddListener(StartTest);
+
+            _resultText.text = "Doing nothing";
+            _calculateButton.onClick.AddListener(StartTest);
         }
 
         private void StartTest()
         {
             int n;
 
-            if (int.TryParse(_nField.text, out n) == false)
+            if (int.TryParse(_nInputField.text, out n) == false)
             {
                 _resultText.text = "Please enter number";
                 return;
