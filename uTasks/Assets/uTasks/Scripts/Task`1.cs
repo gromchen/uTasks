@@ -169,7 +169,7 @@ namespace uTasks
             action(this);
         }
 
-        protected override IEnumerator WaitForMainTaskCompletion()
+        protected override IEnumerator WaitForCompletion()
         {
             var asyncResult = _function.BeginInvoke(null, null);
             Status = TaskStatus.Running;

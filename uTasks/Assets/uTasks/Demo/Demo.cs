@@ -6,10 +6,16 @@ namespace uTasks.Demo
 {
     public class Demo : MonoBehaviour
     {
+        #region Editor
+
         [SerializeField] private Text _resultText;
         [SerializeField] private InputField _nInputField;
         [SerializeField] private Button _calculateButton;
         [SerializeField] private Button _cancelButton;
+
+        #endregion
+
+        private CancellationTokenSource _cts;
 
         [UsedImplicitly]
         private void Awake()
@@ -17,10 +23,11 @@ namespace uTasks.Demo
             TaskScheduler.Current = new UnityTaskScheduler();
 
             _resultText.text = "Doing nothing";
-            _calculateButton.onClick.AddListener(StartTest);
+            _calculateButton.onClick.AddListener(StartCalculation);
+//            _calculateButton.onClick.AddListener();
         }
 
-        private void StartTest()
+        private void StartCalculation()
         {
             int n;
 

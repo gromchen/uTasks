@@ -5,3 +5,4 @@ uTasks/obj/
 uTasks/*.sln
 uTasks/*.DotSettings
 uTasks/*.csproj
+*.user

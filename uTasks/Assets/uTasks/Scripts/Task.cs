@@ -9,7 +9,7 @@ namespace uTasks
         private CancellationToken _cancellationToken;
         private IEnumerator _taskEnumerator;
 
-        public Task()
+        protected Task()
         {
             Status = TaskStatus.Created;
         }
@@ -48,11 +48,9 @@ namespace uTasks
         public void Start()
         {
             if (_taskEnumerator != null)
-            {
                 throw new InvalidOperationException("Task is already started.");
-            }
 
-            _taskEnumerator = WaitForMainTaskCompletion();
+            _taskEnumerator = WaitForCompletion();
             TaskScheduler.Current.StartCoroutineInMainThread(_taskEnumerator);
         }
 
@@ -153,13 +151,19 @@ namespace uTasks
 
         #region Enumerations
 
-        protected virtual IEnumerator WaitForMainTaskCompletion()
+        protected virtual IEnumerator WaitForCompletion()
         {
             var asyncResult = _action.BeginInvoke(null, null);
             Status = TaskStatus.Running;
 
             while (asyncResult.IsCompleted == false)
             {
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    Status = TaskStatus.Canceled;
+                    yield break;
+                }
+
                 yield return null;
             }
 
