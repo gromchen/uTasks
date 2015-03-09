@@ -7,7 +7,6 @@ namespace uTasks
     {
         private readonly Action _action;
         private CancellationToken _cancellationToken;
-        private IEnumerator _taskEnumerator;
 
         protected Task()
         {
@@ -45,13 +44,24 @@ namespace uTasks
             AddException(cancellationException);
         }
 
-        public void Start()
+        public virtual void Start()
         {
-            if (_taskEnumerator != null)
-                throw new InvalidOperationException("Task is already started.");
+            Status = TaskStatus.Running;
+            _action.BeginInvoke(ActionCallback, null);
+        }
 
-            _taskEnumerator = WaitForCompletion();
-            TaskScheduler.Current.StartCoroutineInMainThread(_taskEnumerator);
+        private void ActionCallback(IAsyncResult asyncResult)
+        {
+            try
+            {
+                _action.EndInvoke(asyncResult);
+                Status = TaskStatus.RanToCompletion;
+            }
+            catch (Exception exception)
+            {
+                AddException(exception);
+                Status = TaskStatus.Faulted;
+            }
         }
 
         internal void AddException(Exception exception)
@@ -66,35 +76,30 @@ namespace uTasks
 
         internal void Finish(TaskStatus status = TaskStatus.RanToCompletion)
         {
-            if (_taskEnumerator != null)
-            {
-                TaskScheduler.Current.StopCoroutineInMainThread(_taskEnumerator);
-            }
-
             Status = status;
         }
 
         public Task ContinueWithTask(Action<Task> action)
         {
-            return ThenWith(new Task(() => action(this)));
+            return Then(new Task(() => action(this)));
         }
 
         public Task ThenWithTask(Action action)
         {
-            return ThenWith(new Task(action));
+            return Then(new Task(action));
         }
 
         public Task ThenWithTask(Func<Task> function)
         {
-            return ThenWith(new Task<Task>(function));
+            return Then(new Task<Task>(function));
         }
 
         public Task ThenWithTask<T1, T2>(Func<T1, T2, Task> successor, T1 arg1, T2 arg2)
         {
-            return ThenWith(new Task<Task>(() => successor(arg1, arg2)));
+            return Then(new Task<Task>(() => successor(arg1, arg2)));
         }
 
-        private Task ThenWith(Task task)
+        private Task Then(Task task)
         {
             switch (Status)
             {
@@ -150,34 +155,6 @@ namespace uTasks
         }
 
         #region Enumerations
-
-        protected virtual IEnumerator WaitForCompletion()
-        {
-            var asyncResult = _action.BeginInvoke(null, null);
-            Status = TaskStatus.Running;
-
-            while (asyncResult.IsCompleted == false)
-            {
-                if (_cancellationToken.IsCancellationRequested)
-                {
-                    Status = TaskStatus.Canceled;
-                    yield break;
-                }
-
-                yield return null;
-            }
-
-            try
-            {
-                _action.EndInvoke(asyncResult);
-                Status = TaskStatus.RanToCompletion;
-            }
-            catch (Exception exception)
-            {
-                AddException(exception);
-                Status = TaskStatus.Faulted;
-            }
-        }
 
         private IEnumerator WaitForCompletionAndExecute(Action<Task> action)
         {

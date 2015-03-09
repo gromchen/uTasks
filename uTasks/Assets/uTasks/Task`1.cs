@@ -157,28 +157,14 @@ namespace uTasks
             }
         }
 
-        #region Enumerations
-
-        private IEnumerator WaitForCompletionAndExecute(Action<Task<TResult>> action)
+        public override void Start()
         {
-            while (IsCompleted == false)
-            {
-                yield return null;
-            }
-
-            action(this);
+            Status = TaskStatus.Running;
+            _function.BeginInvoke(FunctionCallback, null);
         }
 
-        protected override IEnumerator WaitForCompletion()
+        private void FunctionCallback(IAsyncResult asyncResult)
         {
-            var asyncResult = _function.BeginInvoke(null, null);
-            Status = TaskStatus.Running;
-
-            while (asyncResult.IsCompleted == false)
-            {
-                yield return null;
-            }
-
             try
             {
                 Result = _function.EndInvoke(asyncResult);
@@ -189,6 +175,18 @@ namespace uTasks
                 AddException(exception);
                 Status = TaskStatus.Faulted;
             }
+        }
+
+        #region Enumerations
+
+        private IEnumerator WaitForCompletionAndExecute(Action<Task<TResult>> action)
+        {
+            while (IsCompleted == false)
+            {
+                yield return null;
+            }
+
+            action(this);
         }
 
         #endregion

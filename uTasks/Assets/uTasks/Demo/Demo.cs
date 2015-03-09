@@ -6,15 +6,6 @@ namespace uTasks.Demo
 {
     public class Demo : MonoBehaviour
     {
-        #region Editor
-
-        [SerializeField] private Text _resultText;
-        [SerializeField] private InputField _nInputField;
-        [SerializeField] private Button _calculateButton;
-        [SerializeField] private Button _cancelButton;
-
-        #endregion
-
         private CancellationTokenSource _cts;
 
         [UsedImplicitly]
@@ -59,6 +50,7 @@ namespace uTasks.Demo
                         prime = 0;
                         break;
                     }
+
                     b++;
                 }
 
@@ -70,5 +62,14 @@ namespace uTasks.Demo
 
             return (--a);
         }
+
+        #region Editor
+
+        [SerializeField] private Text _resultText;
+        [SerializeField] private InputField _nInputField;
+        [SerializeField] private Button _calculateButton;
+        [SerializeField] private Button _cancelButton;
+
+        #endregion
     }
 }
