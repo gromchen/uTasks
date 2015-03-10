@@ -5,12 +5,12 @@ namespace uTasks
 {
     public static class TaskFactory
     {
-        /*public static Task StartNew(Action action, CancellationToken token)
+        public static Task StartNew(Action action)
         {
-            var task = new Task(action, token);
+            var task = new Task(action);
             task.Start();
             return task;
-        }*/
+        }
 
         public static Task<TResult> StartNew<TResult>(Func<TResult> function)
         {
