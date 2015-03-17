@@ -112,7 +112,7 @@ namespace uTasks
                     break;
 
                 default:
-                    TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
+                    MainThread.Current.BeginStart(WaitForCompletionAndStart(task));
                     break;
             }
 
@@ -127,7 +127,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndExecute(action));
+                MainThread.Current.BeginStart(WaitForCompletionAndExecute(action));
             }
         }
 
@@ -148,7 +148,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(launchTask));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(launchTask));
             }
 
             return tcs.Task;

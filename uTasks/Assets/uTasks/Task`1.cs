@@ -36,7 +36,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(task));
             }
 
             return task;
@@ -52,7 +52,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(task));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(task));
             }
 
             return task;
@@ -107,7 +107,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(launchTask));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(launchTask));
             }
 
             return tcs.Task;
@@ -123,7 +123,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(newTask));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(newTask));
             }
 
             return newTask;
@@ -139,7 +139,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndStart(newTask));
+                MainThread.Current.BeginStart(WaitForCompletionAndStart(newTask));
             }
 
             return newTask;
@@ -153,7 +153,7 @@ namespace uTasks
             }
             else
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletionAndExecute(action));
+                MainThread.Current.BeginStart(WaitForCompletionAndExecute(action));
             }
         }
 

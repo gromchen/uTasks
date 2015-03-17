@@ -24,7 +24,7 @@ namespace uTasks
             Func<IAsyncResult, TResult> endMethod)
         {
             var task = new Task<TResult>();
-            TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion(task, beginMethod, endMethod));
+            MainThread.Current.BeginStart(WaitForCompletion(task, beginMethod, endMethod));
             return task;
         }
 

@@ -11,7 +11,7 @@ namespace uTasks.Demo
         [UsedImplicitly]
         private void Awake()
         {
-            TaskScheduler.Current = new UnityTaskScheduler();
+            MainThread.Current = new UnityMainThread();
 
             _resultText.text = "Doing nothing";
             _calculateButton.onClick.AddListener(StartCalculation);

@@ -19,7 +19,7 @@ namespace uTasks
 
             if (flag == false && Task.IsCompleted == false)
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+                MainThread.Current.BeginStart(WaitForCompletion());
             }
 
             return flag;
@@ -36,7 +36,7 @@ namespace uTasks
 
             if (flag == false && Task.IsCompleted == false)
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+                MainThread.Current.BeginStart(WaitForCompletion());
             }
 
             return flag;
@@ -82,7 +82,7 @@ namespace uTasks
 
             if (flag == false && Task.IsCompleted == false)
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+                MainThread.Current.BeginStart(WaitForCompletion());
             }
 
             return flag;
@@ -110,7 +110,7 @@ namespace uTasks
 
             if (flag == false && Task.IsCompleted == false)
             {
-                TaskScheduler.Current.StartCoroutineInMainThread(WaitForCompletion());
+                MainThread.Current.BeginStart(WaitForCompletion());
             }
 
             return flag;
