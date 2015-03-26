@@ -6,7 +6,7 @@ namespace uTasks
     public class Task
     {
         private readonly Action _action;
-        private CancellationToken _cancellationToken;
+        private CancellationToken _token;
 
         protected Task()
         {
@@ -16,6 +16,11 @@ namespace uTasks
         public Task(Action action) : this()
         {
             _action = action;
+        }
+
+        public Task(Action action, CancellationToken token) : this(action)
+        {
+            _token = token;
         }
 
         public AggregateException AggregateException { get; private set; }
@@ -40,14 +45,16 @@ namespace uTasks
         protected void RecordInternalCancellationRequest(CancellationToken tokenToRecord,
             Exception cancellationException)
         {
-            _cancellationToken = tokenToRecord;
+            _token = tokenToRecord;
             AddException(cancellationException);
         }
 
         public virtual void Start()
         {
             Status = TaskStatus.Running;
-            _action.BeginInvoke(ActionCallback, null);
+
+            // todo: specification of token does nothing right now
+            _action.BeginInvoke(ActionCallback, _token);
         }
 
         private void ActionCallback(IAsyncResult asyncResult)
@@ -56,6 +63,11 @@ namespace uTasks
             {
                 _action.EndInvoke(asyncResult);
                 Status = TaskStatus.RanToCompletion;
+            }
+            catch (OperationCanceledException exception)
+            {
+                AddException(exception);
+                Status = TaskStatus.Canceled;
             }
             catch (Exception exception)
             {
@@ -67,9 +79,7 @@ namespace uTasks
         internal void AddException(Exception exception)
         {
             if (AggregateException == null)
-            {
                 AggregateException = new AggregateException();
-            }
 
             AggregateException.AddInnerException(exception);
         }

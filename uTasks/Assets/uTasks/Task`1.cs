@@ -190,6 +190,11 @@ namespace uTasks
                 Result = _function.EndInvoke(asyncResult);
                 Status = TaskStatus.RanToCompletion;
             }
+            catch (OperationCanceledException exception)
+            {
+                AddException(exception);
+                Status = TaskStatus.Canceled;
+            }
             catch (Exception exception)
             {
                 AddException(exception);
