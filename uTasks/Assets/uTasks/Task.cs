@@ -18,7 +18,7 @@ namespace uTasks
             _action = action;
         }
 
-        public AggregateException Exception { get; private set; }
+        public AggregateException AggregateException { get; private set; }
 
         public bool IsCompleted
         {
@@ -66,12 +66,12 @@ namespace uTasks
 
         internal void AddException(Exception exception)
         {
-            if (Exception == null)
+            if (AggregateException == null)
             {
-                Exception = new AggregateException();
+                AggregateException = new AggregateException();
             }
 
-            Exception.AddInnerException(exception);
+            AggregateException.AddInnerException(exception);
         }
 
         internal void Finish(TaskStatus status = TaskStatus.RanToCompletion)
@@ -121,13 +121,16 @@ namespace uTasks
 
         public void CompleteWithAction(Action<Task> action)
         {
-            if (IsCompleted)
+            switch (Status)
             {
-                action(this);
-            }
-            else
-            {
-                MainThread.Current.BeginStart(WaitForCompletionAndExecute(action));
+                case TaskStatus.RanToCompletion:
+                case TaskStatus.Canceled:
+                case TaskStatus.Faulted:
+                    action(this);
+                    break;
+                default:
+                    MainThread.Current.BeginStart(WaitForCompletionAndExecute(action));
+                    break;
             }
         }
 
@@ -142,13 +145,16 @@ namespace uTasks
                 return newTask;
             });
 
-            if (IsCompleted)
+            switch (Status)
             {
-                launchTask.Start();
-            }
-            else
-            {
-                MainThread.Current.BeginStart(WaitForCompletionAndStart(launchTask));
+                case TaskStatus.RanToCompletion:
+                case TaskStatus.Canceled:
+                case TaskStatus.Faulted:
+                    launchTask.Start();
+                    break;
+                default:
+                    MainThread.Current.BeginStart(WaitForCompletionAndStart(launchTask));
+                    break;
             }
 
             return tcs.Task;
@@ -158,7 +164,7 @@ namespace uTasks
 
         private IEnumerator WaitForCompletionAndExecute(Action<Task> action)
         {
-            while (IsCompleted == false)
+            while (IsCompleted == false && IsFaulted == false && IsCanceled == false)
             {
                 yield return null;
             }
@@ -168,7 +174,7 @@ namespace uTasks
 
         protected IEnumerator WaitForCompletionAndStart(Task task)
         {
-            while (IsCompleted == false)
+            while (IsCompleted == false && IsFaulted == false && IsCanceled == false)
             {
                 yield return null;
             }
