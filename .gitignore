@@ -6,3 +6,5 @@ uTasks/*.sln
 uTasks/*.DotSettings
 uTasks/*.csproj
 *.user
+uTasks/Assets/UnityVS/
+uTasks/Assets/UnityVS.meta
