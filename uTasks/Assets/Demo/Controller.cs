@@ -1,11 +1,12 @@
 ﻿using JetBrains.Annotations;
+using uTasks;
 using uTasks.Dispatchers;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace uTasks.Demo
+namespace Demo
 {
-    public class Demo : MonoBehaviour
+    public class Controller : MonoBehaviour
     {
         #region Editor
 

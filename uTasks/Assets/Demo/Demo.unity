@@ -956,7 +956,7 @@ GameObject:
   - 4: {fileID: 1709567142}
   - 114: {fileID: 1709567141}
   m_Layer: 0
-  m_Name: Demo
+  m_Name: Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
